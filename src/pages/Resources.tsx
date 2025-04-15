@@ -1,15 +1,22 @@
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Book, Code, FileText, Video, Link as LinkIcon } from "lucide-react";
+import { roadmaps } from "@/data/roadmaps";
 
 const Resources = () => {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const navigate = useNavigate();
+  const [dreamJobResources, setDreamJobResources] = useState<{
+    title: string;
+    description: string;
+    type: "video" | "article" | "course" | "tool";
+    link: string;
+  }[]>([]);
   
   useEffect(() => {
     if (!isAuthenticated) {
@@ -17,24 +24,89 @@ const Resources = () => {
     }
   }, [isAuthenticated, navigate]);
 
+  useEffect(() => {
+    if (user?.dreamJob) {
+      // Find the roadmap that matches the user's dream job
+      const dreamJobRoadmap = roadmaps.find(roadmap => 
+        roadmap.title.toLowerCase() === user.dreamJob.toLowerCase()
+      );
+      
+      // If no exact match, look for partial matches
+      const partialMatchRoadmap = !dreamJobRoadmap ? 
+        roadmaps.find(roadmap => 
+          roadmap.title.toLowerCase().includes(user.dreamJob.toLowerCase()) ||
+          user.dreamJob.toLowerCase().includes(roadmap.title.toLowerCase())
+        ) : null;
+      
+      const selectedRoadmap = dreamJobRoadmap || partialMatchRoadmap;
+      
+      if (selectedRoadmap) {
+        // Extract resources from the roadmap
+        const resources = selectedRoadmap.steps.flatMap(step => 
+          step.resources.map(resource => ({
+            title: resource.name,
+            description: step.title + ": " + step.description,
+            type: resource.type as "video" | "article" | "course" | "tool",
+            link: resource.url
+          }))
+        );
+        
+        setDreamJobResources(resources);
+      }
+    }
+  }, [user]);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Navbar />
       
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Educational Resources</h1>
+        
+        {user?.dreamJob && (
+          <div className="mb-6">
+            <p className="text-gray-600 mb-2">
+              Personalized resources for your dream job: <span className="font-semibold text-career-blue">{user.dreamJob}</span>
+            </p>
+            {dreamJobResources.length === 0 && (
+              <p className="text-amber-600">
+                We couldn't find exact resources for your dream job. Showing general resources instead.
+              </p>
+            )}
+          </div>
+        )}
+        
         <p className="text-gray-600 mb-8">
           Explore curated learning materials to help you in your career journey. We've gathered the best resources from around the web to support your learning.
         </p>
         
-        <Tabs defaultValue="all" className="w-full">
+        <Tabs defaultValue={dreamJobResources.length > 0 ? "dream-job" : "all"} className="w-full">
           <TabsList className="mb-8 flex flex-wrap">
+            {dreamJobResources.length > 0 && (
+              <TabsTrigger value="dream-job">My Dream Job</TabsTrigger>
+            )}
             <TabsTrigger value="all">All Resources</TabsTrigger>
             <TabsTrigger value="videos">Videos</TabsTrigger>
             <TabsTrigger value="articles">Articles</TabsTrigger>
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="tools">Tools</TabsTrigger>
           </TabsList>
+          
+          {dreamJobResources.length > 0 && (
+            <TabsContent value="dream-job" className="w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {dreamJobResources.map((resource, index) => (
+                  <ResourceCard 
+                    key={`dream-job-resource-${index}`}
+                    title={resource.title}
+                    description={resource.description}
+                    type={resource.type}
+                    link={resource.link}
+                  />
+                ))}
+              </div>
+            </TabsContent>
+          )}
           
           <TabsContent value="all" className="w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
