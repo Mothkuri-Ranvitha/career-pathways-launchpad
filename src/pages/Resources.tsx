@@ -65,12 +65,10 @@ const Resources = () => {
         
         {user?.dreamJob && (
           <div className="mb-6">
-            <p className="text-gray-600 mb-2">
-              Personalized resources for your dream job: <span className="font-semibold text-career-blue">{user.dreamJob}</span>
-            </p>
+            
             {dreamJobResources.length === 0 && (
               <p className="text-amber-600">
-                We couldn't find exact resources for your dream job. Showing general resources instead.
+                
               </p>
             )}
           </div>
