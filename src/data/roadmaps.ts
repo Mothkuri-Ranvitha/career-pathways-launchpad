@@ -1,4 +1,3 @@
-
 export type RoadmapStep = {
   id: string;
   title: string;
@@ -479,6 +478,542 @@ export const roadmaps: Roadmap[] = [
             name: 'Kaggle Competitions',
             type: 'course',
             url: 'https://www.kaggle.com/competitions'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'uiux-designer',
+    title: 'UI/UX Designer',
+    description: 'Learn to design beautiful, functional, and user-centered digital products and experiences',
+    icon: '🎨',
+    steps: [
+      {
+        id: 'uiux-fundamentals',
+        title: 'Design Fundamentals',
+        description: 'Learn the basics of visual design including color theory, typography, layout, and composition.',
+        level: 'beginner',
+        resources: [
+          {
+            name: 'Design for Non-Designers',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=QFjISxJe-kE'
+          },
+          {
+            name: 'Principles of Design',
+            type: 'article',
+            url: 'https://www.interaction-design.org/literature/topics/design-principles'
+          }
+        ]
+      },
+      {
+        id: 'user-research',
+        title: 'User Research & Personas',
+        description: 'Learn methods for understanding your users through research, interviews, and creating user personas.',
+        level: 'beginner',
+        resources: [
+          {
+            name: 'UX Research Methods',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=gGZGDnTY454'
+          },
+          {
+            name: 'Creating User Personas',
+            type: 'course',
+            url: 'https://www.nngroup.com/articles/persona-creation/'
+          }
+        ]
+      },
+      {
+        id: 'wireframing-prototyping',
+        title: 'Wireframing & Prototyping',
+        description: 'Master the tools and techniques for creating wireframes and interactive prototypes.',
+        level: 'intermediate',
+        resources: [
+          {
+            name: 'Figma Tutorial for Beginners',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=jk1T0CdLxwU'
+          },
+          {
+            name: 'Prototyping UI with Figma',
+            type: 'course',
+            url: 'https://www.figma.com/resources/learn-design/prototyping/'
+          }
+        ]
+      },
+      {
+        id: 'usability-testing',
+        title: 'Usability Testing',
+        description: 'Learn to conduct usability tests to validate your designs and gather user feedback.',
+        level: 'intermediate',
+        resources: [
+          {
+            name: 'Usability Testing Basics',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=0YL0xoSmyZI'
+          },
+          {
+            name: 'Remote Usability Testing Guide',
+            type: 'article',
+            url: 'https://www.nngroup.com/articles/remote-usability-tests/'
+          }
+        ]
+      },
+      {
+        id: 'interaction-design',
+        title: 'Interaction Design',
+        description: 'Focus on creating meaningful interactions and micro-interactions for your digital products.',
+        level: 'advanced',
+        resources: [
+          {
+            name: 'Micro-interactions in UI Design',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=AhWIJslo6vI'
+          },
+          {
+            name: 'Interaction Design Principles',
+            type: 'article',
+            url: 'https://www.interaction-design.org/literature/topics/interaction-design'
+          }
+        ]
+      },
+      {
+        id: 'accessibility-design',
+        title: 'Accessibility in Design',
+        description: 'Learn to design products that are accessible to users of all abilities and disabilities.',
+        level: 'advanced',
+        resources: [
+          {
+            name: 'Designing for Accessibility',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=aqM6rV5IBlg'
+          },
+          {
+            name: 'Web Content Accessibility Guidelines',
+            type: 'article',
+            url: 'https://www.w3.org/WAI/standards-guidelines/wcag/'
+          }
+        ]
+      },
+      {
+        id: 'design-systems',
+        title: 'Design Systems',
+        description: 'Create and maintain scalable design systems that ensure consistency across products.',
+        level: 'expert',
+        resources: [
+          {
+            name: 'Building a Design System',
+            type: 'course',
+            url: 'https://designsystem.digital.gov/'
+          },
+          {
+            name: 'Design Systems Best Practices',
+            type: 'article',
+            url: 'https://www.invisionapp.com/inside-design/guide-to-design-systems/'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'product-manager',
+    title: 'Product Manager',
+    description: 'Learn to build products that solve real problems and create value for users and businesses',
+    icon: '📊',
+    steps: [
+      {
+        id: 'product-fundamentals',
+        title: 'Product Management Fundamentals',
+        description: 'Understand the role of a product manager and the product development lifecycle.',
+        level: 'beginner',
+        resources: [
+          {
+            name: 'What is Product Management?',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=yUOC-Y0f5ZQ'
+          },
+          {
+            name: 'Product Management Guide',
+            type: 'article',
+            url: 'https://www.productplan.com/learn/what-is-product-management/'
+          }
+        ]
+      },
+      {
+        id: 'user-discovery',
+        title: 'User Discovery & Market Research',
+        description: 'Learn to identify user needs, market opportunities, and validate product ideas.',
+        level: 'beginner',
+        resources: [
+          {
+            name: 'User Research for Product Managers',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=6GwjzBgJqF4'
+          },
+          {
+            name: 'Market Research Techniques',
+            type: 'course',
+            url: 'https://www.productschool.com/blog/product-management-2/market-research/'
+          }
+        ]
+      },
+      {
+        id: 'product-strategy',
+        title: 'Product Strategy & Roadmapping',
+        description: 'Develop strategic thinking and learn to create effective product roadmaps.',
+        level: 'intermediate',
+        resources: [
+          {
+            name: 'Building a Product Roadmap',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=GXwWwyNQ9-I'
+          },
+          {
+            name: 'Product Strategy Framework',
+            type: 'article',
+            url: 'https://www.productplan.com/learn/product-strategy-framework/'
+          }
+        ]
+      },
+      {
+        id: 'agile-methodologies',
+        title: 'Agile Methodologies',
+        description: 'Master Agile, Scrum, and other frameworks for effective product development.',
+        level: 'intermediate',
+        resources: [
+          {
+            name: 'Agile Product Management',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=502ILHjX9EE'
+          },
+          {
+            name: 'Scrum Guide',
+            type: 'article',
+            url: 'https://scrumguides.org/scrum-guide.html'
+          }
+        ]
+      },
+      {
+        id: 'metrics-analytics',
+        title: 'Product Metrics & Analytics',
+        description: 'Learn to define, track, and analyze product metrics to measure success.',
+        level: 'advanced',
+        resources: [
+          {
+            name: 'Product Metrics That Matter',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=ra_fLrHEe70'
+          },
+          {
+            name: 'Data-Driven Product Decisions',
+            type: 'course',
+            url: 'https://www.productschool.com/blog/product-management-2/data-product-manager/'
+          }
+        ]
+      },
+      {
+        id: 'product-launch',
+        title: 'Product Launch & GTM Strategy',
+        description: 'Develop strategies for successful product launches and go-to-market planning.',
+        level: 'advanced',
+        resources: [
+          {
+            name: 'Product Launch Playbook',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=LeBhdBN4ThM'
+          },
+          {
+            name: 'Go-to-Market Strategy',
+            type: 'article',
+            url: 'https://www.productplan.com/learn/go-to-market-strategy/'
+          }
+        ]
+      },
+      {
+        id: 'stakeholder-management',
+        title: 'Stakeholder Management',
+        description: 'Master the art of managing stakeholders, securing buy-in, and effective communication.',
+        level: 'expert',
+        resources: [
+          {
+            name: 'Stakeholder Management for PMs',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=QDxuGdUixqc'
+          },
+          {
+            name: 'Influence Without Authority',
+            type: 'course',
+            url: 'https://www.productschool.com/blog/product-management-2/influence-without-authority/'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'software-engineer',
+    title: 'Software Engineer',
+    description: 'Master software engineering principles, architecture, and best practices for scalable applications',
+    icon: '💻',
+    steps: [
+      {
+        id: 'programming-fundamentals',
+        title: 'Programming Fundamentals',
+        description: 'Learn core programming concepts, data structures, and algorithms.',
+        level: 'beginner',
+        resources: [
+          {
+            name: 'Data Structures & Algorithms',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=8hly31xKli0'
+          },
+          {
+            name: 'Introduction to Algorithms',
+            type: 'course',
+            url: 'https://ocw.mit.edu/courses/6-006-introduction-to-algorithms-spring-2020/'
+          }
+        ]
+      },
+      {
+        id: 'software-design',
+        title: 'Software Design & Architecture',
+        description: 'Learn design patterns, software architecture principles, and system design.',
+        level: 'intermediate',
+        resources: [
+          {
+            name: 'Software Architecture & Design Patterns',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=FLtqAi7WNBY'
+          },
+          {
+            name: 'System Design Primer',
+            type: 'article',
+            url: 'https://github.com/donnemartin/system-design-primer'
+          }
+        ]
+      },
+      {
+        id: 'testing-debugging',
+        title: 'Testing & Debugging',
+        description: 'Master various testing methodologies and debugging techniques.',
+        level: 'intermediate',
+        resources: [
+          {
+            name: 'Test-Driven Development',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=z6gOPonp2t0'
+          },
+          {
+            name: 'Advanced Debugging Techniques',
+            type: 'article',
+            url: 'https://blog.logrocket.com/advanced-debugging-techniques-for-react-applications/'
+          }
+        ]
+      },
+      {
+        id: 'backend-development',
+        title: 'Backend Development',
+        description: 'Learn server-side programming, APIs, databases, and backend architecture.',
+        level: 'intermediate',
+        resources: [
+          {
+            name: 'RESTful API Design',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=Q-BpqyOT3a8'
+          },
+          {
+            name: 'Database Design Fundamentals',
+            type: 'course',
+            url: 'https://www.coursera.org/learn/database-design'
+          }
+        ]
+      },
+      {
+        id: 'devops-ci-cd',
+        title: 'DevOps & CI/CD',
+        description: 'Understand continuous integration, deployment, and DevOps practices.',
+        level: 'advanced',
+        resources: [
+          {
+            name: 'DevOps Engineering Course',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=j5Zsa_eOXeY'
+          },
+          {
+            name: 'CI/CD Pipeline Explained',
+            type: 'article',
+            url: 'https://www.redhat.com/en/topics/devops/what-is-ci-cd'
+          }
+        ]
+      },
+      {
+        id: 'cloud-services',
+        title: 'Cloud Services & Deployment',
+        description: 'Master cloud platforms, serverless architecture, and deployment strategies.',
+        level: 'advanced',
+        resources: [
+          {
+            name: 'AWS for Software Engineers',
+            type: 'course',
+            url: 'https://aws.amazon.com/getting-started/hands-on/build-web-app-s3-lambda-api-gateway-dynamodb/'
+          },
+          {
+            name: 'Serverless Architecture',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=W_VV2CnNlK4'
+          }
+        ]
+      },
+      {
+        id: 'scalability-performance',
+        title: 'Scalability & Performance',
+        description: 'Learn techniques for building highly scalable and performant applications.',
+        level: 'expert',
+        resources: [
+          {
+            name: 'High Scalability Architecture',
+            type: 'article',
+            url: 'http://highscalability.com/blog/2016/1/11/a-beginners-guide-to-scaling-to-11-million-users-on-amazons.html'
+          },
+          {
+            name: 'Web Performance Optimization',
+            type: 'course',
+            url: 'https://web.dev/learn/performance/'
+          }
+        ]
+      }
+    ]
+  },
+  {
+    id: 'sde',
+    title: 'SDE (Software Development Engineer)',
+    description: 'Become an expert in software development engineering with focus on large-scale systems',
+    icon: '⚙️',
+    steps: [
+      {
+        id: 'coding-proficiency',
+        title: 'Coding Proficiency',
+        description: 'Master at least one programming language and fundamental coding principles.',
+        level: 'beginner',
+        resources: [
+          {
+            name: 'Python for SDE',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=rfscVS0vtbw'
+          },
+          {
+            name: 'Clean Code Principles',
+            type: 'article',
+            url: 'https://www.freecodecamp.org/news/clean-coding-for-beginners/'
+          }
+        ]
+      },
+      {
+        id: 'computer-science-foundations',
+        title: 'Computer Science Foundations',
+        description: 'Strengthen your knowledge of data structures, algorithms, and problem-solving techniques.',
+        level: 'beginner',
+        resources: [
+          {
+            name: 'Algorithms and Data Structures',
+            type: 'course',
+            url: 'https://www.coursera.org/specializations/algorithms'
+          },
+          {
+            name: 'Leetcode Problem Solving',
+            type: 'article',
+            url: 'https://leetcode.com/problemset/all/'
+          }
+        ]
+      },
+      {
+        id: 'system-design',
+        title: 'System Design',
+        description: 'Learn to design scalable, reliable and maintainable systems.',
+        level: 'intermediate',
+        resources: [
+          {
+            name: 'System Design Interview',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=0163cssUxLA'
+          },
+          {
+            name: 'Designing Data-Intensive Applications',
+            type: 'course',
+            url: 'https://dataintensive.net/'
+          }
+        ]
+      },
+      {
+        id: 'distributed-systems',
+        title: 'Distributed Systems',
+        description: 'Understand the principles of distributed computing and microservices architecture.',
+        level: 'advanced',
+        resources: [
+          {
+            name: 'Microservices Architecture',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=y8IQb4ofjDo'
+          },
+          {
+            name: 'Distributed Systems Design',
+            type: 'article',
+            url: 'https://martinfowler.com/articles/microservices.html'
+          }
+        ]
+      },
+      {
+        id: 'security-privacy',
+        title: 'Security & Privacy',
+        description: 'Learn security best practices and how to build secure software systems.',
+        level: 'advanced',
+        resources: [
+          {
+            name: 'Application Security Fundamentals',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=qjrkV4RAdTg'
+          },
+          {
+            name: 'OWASP Top 10',
+            type: 'article',
+            url: 'https://owasp.org/www-project-top-ten/'
+          }
+        ]
+      },
+      {
+        id: 'infrastructure-deployment',
+        title: 'Infrastructure & Deployment',
+        description: 'Master infrastructure as code, containerization, and CI/CD pipelines.',
+        level: 'advanced',
+        resources: [
+          {
+            name: 'Docker and Kubernetes',
+            type: 'course',
+            url: 'https://www.udemy.com/course/docker-and-kubernetes-the-complete-guide/'
+          },
+          {
+            name: 'Infrastructure as Code',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=53X-HAw7BbA'
+          }
+        ]
+      },
+      {
+        id: 'operational-excellence',
+        title: 'Operational Excellence',
+        description: 'Learn about monitoring, observability, and maintaining production systems.',
+        level: 'expert',
+        resources: [
+          {
+            name: 'Site Reliability Engineering',
+            type: 'article',
+            url: 'https://sre.google/sre-book/table-of-contents/'
+          },
+          {
+            name: 'Observability in Production',
+            type: 'video',
+            url: 'https://www.youtube.com/watch?v=MkSdvBdC_1w'
           }
         ]
       }
