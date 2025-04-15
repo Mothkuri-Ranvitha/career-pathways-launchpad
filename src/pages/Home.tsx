@@ -1,0 +1,137 @@
+
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
+import { roadmaps } from "@/data/roadmaps";
+import Navbar from "@/components/Navbar";
+import RoadmapCard from "@/components/RoadmapCard";
+import ProgressTracker from "@/components/ProgressTracker";
+import { Button } from "@/components/ui/button";
+import { BookOpen, ArrowRight } from "lucide-react";
+
+const Home = () => {
+  const { user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  
+  // Get the recommended roadmap based on user's dream job
+  const getRecommendedRoadmap = () => {
+    if (!user) return null;
+    
+    const dreamJobMap: Record<string, string> = {
+      frontend: "frontend-dev",
+      backend: "backend-dev",
+      fullstack: "fullstack-dev",
+      data: "data-scientist",
+      ui: "ux-designer",
+      pm: "product-manager",
+      swe: "software-engineer",
+      sde: "sde-engineer",
+      other: "frontend-dev", // Default to frontend
+    };
+    
+    const roadmapId = dreamJobMap[user.dreamJob] || "frontend-dev";
+    return roadmaps.find(r => r.id === roadmapId) || roadmaps[0];
+  };
+  
+  // Get the most recently worked on roadmap
+  const getMostRecentRoadmap = () => {
+    if (!user || !user.progress) return null;
+    
+    const roadmapIds = Object.keys(user.progress);
+    if (roadmapIds.length === 0) return null;
+    
+    // Find the roadmap with the highest progress that's not complete
+    const incompleteMaps = roadmapIds.filter(id => user.progress[id] < 100);
+    if (incompleteMaps.length === 0) return null;
+    
+    // Sort by progress (highest first)
+    incompleteMaps.sort((a, b) => user.progress[b] - user.progress[a]);
+    
+    return roadmaps.find(r => r.id === incompleteMaps[0]) || null;
+  };
+
+  useEffect(() => {
+    // Redirect to landing page if not authenticated
+    if (!isAuthenticated && !loading) {
+      navigate('/');
+    }
+    setLoading(false);
+  }, [isAuthenticated, navigate, loading]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  const recommendedRoadmap = getRecommendedRoadmap();
+  const recentRoadmap = getMostRecentRoadmap();
+  const suggestedRoadmap = recentRoadmap || recommendedRoadmap;
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <Navbar />
+      
+      <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+        {/* Welcome Section */}
+        <section className="mb-10">
+          <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 border border-gray-100">
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+              Welcome back, {user?.fullName?.split(' ')[0]}!
+            </h1>
+            <p className="mt-2 text-gray-600">
+              "Success is not final, failure is not fatal: It is the courage to continue that counts."
+            </p>
+            
+            {suggestedRoadmap && (
+              <div className="mt-6 sm:flex sm:items-center sm:justify-between">
+                <div>
+                  <h2 className="text-lg font-medium text-gray-900">
+                    {user?.progress && user.progress[suggestedRoadmap.id] ? 'Continue where you left off:' : 'Recommended for you:'}
+                  </h2>
+                  <p className="mt-1 text-sm text-gray-500">{suggestedRoadmap.title} Roadmap</p>
+                </div>
+                <div className="mt-3 sm:mt-0">
+                  <Button 
+                    onClick={() => navigate(`/roadmap/${suggestedRoadmap.id}`)}
+                    className="w-full sm:w-auto flex items-center"
+                  >
+                    <BookOpen className="mr-2 h-4 w-4" />
+                    {user?.progress && user.progress[suggestedRoadmap.id] ? 'Continue Learning' : 'Start Learning'}
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </section>
+        
+        {/* Dashboard Content */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Progress Tracker */}
+          <div className="md:col-span-1">
+            <ProgressTracker />
+          </div>
+          
+          {/* Roadmaps Grid */}
+          <div className="md:col-span-2">
+            <h2 className="text-xl font-bold text-gray-900 mb-4">Career Roadmaps</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {roadmaps.slice(0, 4).map((roadmap) => (
+                <RoadmapCard key={roadmap.id} roadmap={roadmap} />
+              ))}
+            </div>
+            {roadmaps.length > 4 && (
+              <div className="mt-4 text-center">
+                <Button variant="outline" onClick={() => navigate('/roadmaps')}>
+                  View All Roadmaps
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+};
+
+export default Home;
