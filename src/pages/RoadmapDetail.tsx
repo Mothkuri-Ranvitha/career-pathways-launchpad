@@ -1,8 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { roadmaps, RoadmapStep } from "@/data/roadmaps";
+import { roadmaps } from "@/data/roadmaps";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -29,37 +29,42 @@ const RoadmapDetail = () => {
       navigate('/roadmaps');
       return;
     }
-    
-    // Initialize completed steps from user progress
-    if (user && user.progress && user.progress[id]) {
-      const userProgress = user.progress[id];
-      setProgress(userProgress);
-      
-      // Calculate which steps should be marked as completed based on progress percentage
-      const totalSteps = currentRoadmap.steps.length;
-      const completedCount = Math.floor((userProgress / 100) * totalSteps);
-      
-      const newCompletedSteps: Record<string, boolean> = {};
-      
-      // First initialize all steps as not completed
-      currentRoadmap.steps.forEach(step => {
-        newCompletedSteps[step.id] = false;
-      });
-      
-      // Then mark steps as completed based on progress
-      currentRoadmap.steps.slice(0, completedCount).forEach(step => {
-        newCompletedSteps[step.id] = true;
-      });
-      
-      setCompletedSteps(newCompletedSteps);
-    } else {
-      // Initialize all steps as not completed if no progress exists
-      const newCompletedSteps: Record<string, boolean> = {};
-      currentRoadmap?.steps.forEach(step => {
-        newCompletedSteps[step.id] = false;
-      });
-      setCompletedSteps(newCompletedSteps);
-    }
+
+    const fetchProgress = async () => {
+      if (!user || !id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('roadmap_progress')
+          .select('progress')
+          .eq('user_id', user.id)
+          .eq('roadmap_id', id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+
+        const userProgress = data?.progress ?? 0;
+        setProgress(userProgress);
+        
+        if (currentRoadmap) {
+          const totalSteps = currentRoadmap.steps.length;
+          const completedCount = Math.floor((userProgress / 100) * totalSteps);
+          
+          const newCompletedSteps: Record<string, boolean> = {};
+          currentRoadmap.steps.forEach((step, index) => {
+            newCompletedSteps[step.id] = index < completedCount;
+          });
+          
+          setCompletedSteps(newCompletedSteps);
+        }
+      } catch (error) {
+        console.error('Error fetching progress:', error);
+      }
+    };
+
+    fetchProgress();
   }, [id, currentRoadmap, isAuthenticated, navigate, user]);
 
   const handleStepToggle = (stepId: string, checked: boolean) => {
@@ -72,7 +77,6 @@ const RoadmapDetail = () => {
     
     setCompletedSteps(newCompletedSteps);
     
-    // Calculate new progress
     if (!currentRoadmap) return;
     
     const totalSteps = currentRoadmap.steps.length;
@@ -83,7 +87,6 @@ const RoadmapDetail = () => {
     
     setProgress(newProgress);
     
-    // Update progress in user context
     if (id) {
       console.log("Updating progress for roadmap:", id, "New progress:", newProgress);
       updateProgress(id, newProgress);
