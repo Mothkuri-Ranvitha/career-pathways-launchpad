@@ -1,60 +1,72 @@
-
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import Navbar from "@/components/Navbar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Book, Code, FileText, Video, Link as LinkIcon } from "lucide-react";
-import { roadmaps } from "@/data/roadmaps";
+import { Search, BookOpen, Video, FileText, Link2 } from "lucide-react";
+import { resources } from "@/data/resources";
 
 const Resources = () => {
-  const { isAuthenticated, user } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
-  const [dreamJobResources, setDreamJobResources] = useState<{
-    title: string;
-    description: string;
-    type: "video" | "article" | "course" | "tool";
-    link: string;
-  }[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filteredResources, setFilteredResources] = useState(resources);
+  const [activeTab, setActiveTab] = useState("recommended");
   
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
     }
   }, [isAuthenticated, navigate]);
-
+  
   useEffect(() => {
-    if (user?.dreamJob) {
-      // Find the roadmap that matches the user's dream job
-      const dreamJobRoadmap = roadmaps.find(roadmap => 
-        roadmap.title.toLowerCase() === user.dreamJob.toLowerCase()
+    if (activeTab === "recommended" && profile) {
+      setFilteredResources(
+        resources.filter(resource => 
+          resource.tags.includes(profile.dreamJob) || 
+          resource.tags.includes("all")
+        )
       );
-      
-      // If no exact match, look for partial matches
-      const partialMatchRoadmap = !dreamJobRoadmap ? 
-        roadmaps.find(roadmap => 
-          roadmap.title.toLowerCase().includes(user.dreamJob.toLowerCase()) ||
-          user.dreamJob.toLowerCase().includes(roadmap.title.toLowerCase())
-        ) : null;
-      
-      const selectedRoadmap = dreamJobRoadmap || partialMatchRoadmap;
-      
-      if (selectedRoadmap) {
-        // Extract resources from the roadmap
-        const resources = selectedRoadmap.steps.flatMap(step => 
-          step.resources.map(resource => ({
-            title: resource.name,
-            description: step.title + ": " + step.description,
-            type: resource.type as "video" | "article" | "course" | "tool",
-            link: resource.url
-          }))
+    } else if (activeTab === "all") {
+      setFilteredResources(resources);
+    } else if (activeTab === "articles") {
+      setFilteredResources(resources.filter(resource => resource.type === "article"));
+    } else if (activeTab === "videos") {
+      setFilteredResources(resources.filter(resource => resource.type === "video"));
+    } else if (activeTab === "tutorials") {
+      setFilteredResources(resources.filter(resource => resource.type === "tutorial"));
+    }
+  }, [activeTab, profile]);
+  
+  useEffect(() => {
+    if (searchTerm) {
+      let results = resources.filter(resource => 
+        resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        resource.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
+      );
+      setFilteredResources(results);
+    } else {
+      if (activeTab === "recommended" && profile) {
+        setFilteredResources(
+          resources.filter(resource => 
+            resource.tags.includes(profile.dreamJob) || 
+            resource.tags.includes("all")
+          )
         );
-        
-        setDreamJobResources(resources);
+      } else if (activeTab === "all") {
+        setFilteredResources(resources);
+      } else if (activeTab === "articles") {
+        setFilteredResources(resources.filter(resource => resource.type === "article"));
+      } else if (activeTab === "videos") {
+        setFilteredResources(resources.filter(resource => resource.type === "video"));
+      } else if (activeTab === "tutorials") {
+        setFilteredResources(resources.filter(resource => resource.type === "tutorial"));
       }
     }
-  }, [user]);
+  }, [searchTerm, activeTab, profile]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -63,179 +75,94 @@ const Resources = () => {
       <main className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">Educational Resources</h1>
         
-        {user?.dreamJob && (
-          <div className="mb-6">
-            
-            {dreamJobResources.length === 0 && (
-              <p className="text-amber-600">
-                
-              </p>
-            )}
-          </div>
-        )}
+        <div className="mb-6">
+          <Input 
+            placeholder="Search resources..."
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+          />
+        </div>
         
         <p className="text-gray-600 mb-8">
           Explore curated learning materials to help you in your career journey. We've gathered the best resources from around the web to support your learning.
         </p>
         
-        <Tabs defaultValue={dreamJobResources.length > 0 ? "dream-job" : "all"} className="w-full">
+        <Tabs defaultValue={activeTab} className="w-full">
           <TabsList className="mb-8 flex flex-wrap">
-            {dreamJobResources.length > 0 && (
-              <TabsTrigger value="dream-job">My Dream Job</TabsTrigger>
-            )}
+            <TabsTrigger value="recommended">Recommended</TabsTrigger>
             <TabsTrigger value="all">All Resources</TabsTrigger>
-            <TabsTrigger value="videos">Videos</TabsTrigger>
             <TabsTrigger value="articles">Articles</TabsTrigger>
-            <TabsTrigger value="courses">Courses</TabsTrigger>
-            <TabsTrigger value="tools">Tools</TabsTrigger>
+            <TabsTrigger value="videos">Videos</TabsTrigger>
+            <TabsTrigger value="tutorials">Tutorials</TabsTrigger>
           </TabsList>
           
-          {dreamJobResources.length > 0 && (
-            <TabsContent value="dream-job" className="w-full">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {dreamJobResources.map((resource, index) => (
-                  <ResourceCard 
-                    key={`dream-job-resource-${index}`}
-                    title={resource.title}
-                    description={resource.description}
-                    type={resource.type}
-                    link={resource.link}
-                  />
-                ))}
-              </div>
-            </TabsContent>
-          )}
-          
-          <TabsContent value="all" className="w-full">
+          <TabsContent value="recommended" className="w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <ResourceCard 
-                title="JavaScript Fundamentals"
-                description="Learn the core concepts of JavaScript programming"
-                type="video"
-                link="https://www.youtube.com/watch?v=PkZNo7MFNFg"
-              />
-              <ResourceCard 
-                title="Web Development in 2023"
-                description="A complete roadmap for modern web development"
-                type="article"
-                link="https://www.freecodecamp.org/news/web-development-2023/"
-              />
-              <ResourceCard 
-                title="React Complete Course"
-                description="Master React.js from basics to advanced concepts"
-                type="course"
-                link="https://www.freecodecamp.org/learn/front-end-development-libraries/"
-              />
-              <ResourceCard 
-                title="CSS Tricks"
-                description="Advanced CSS techniques and best practices"
-                type="article"
-                link="https://css-tricks.com/"
-              />
-              <ResourceCard 
-                title="Git & GitHub for Beginners"
-                description="Learn version control with Git and GitHub"
-                type="video"
-                link="https://www.youtube.com/watch?v=RGOj5yH7evk"
-              />
-              <ResourceCard 
-                title="VS Code Productivity Tips"
-                description="Boost your coding efficiency with these VS Code tricks"
-                type="tool"
-                link="https://code.visualstudio.com/docs/editor/codebasics"
-              />
+              {filteredResources.map((resource, index) => (
+                <ResourceCard 
+                  key={`recommended-resource-${index}`}
+                  title={resource.title}
+                  description={resource.description}
+                  type={resource.type}
+                  link={resource.link}
+                />
+              ))}
             </div>
           </TabsContent>
           
-          <TabsContent value="videos" className="w-full">
+          <TabsContent value="all" className="w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <ResourceCard 
-                title="JavaScript Fundamentals"
-                description="Learn the core concepts of JavaScript programming"
-                type="video"
-                link="https://www.youtube.com/watch?v=PkZNo7MFNFg"
-              />
-              <ResourceCard 
-                title="Git & GitHub for Beginners"
-                description="Learn version control with Git and GitHub"
-                type="video"
-                link="https://www.youtube.com/watch?v=RGOj5yH7evk"
-              />
-              <ResourceCard 
-                title="React for Beginners"
-                description="Learn the basics of React.js with practical examples"
-                type="video"
-                link="https://www.youtube.com/watch?v=bMknfKXIFA8"
-              />
+              {filteredResources.map((resource, index) => (
+                <ResourceCard 
+                  key={`all-resource-${index}`}
+                  title={resource.title}
+                  description={resource.description}
+                  type={resource.type}
+                  link={resource.link}
+                />
+              ))}
             </div>
           </TabsContent>
           
           <TabsContent value="articles" className="w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <ResourceCard 
-                title="Web Development in 2023"
-                description="A complete roadmap for modern web development"
-                type="article"
-                link="https://www.freecodecamp.org/news/web-development-2023/"
-              />
-              <ResourceCard 
-                title="CSS Tricks"
-                description="Advanced CSS techniques and best practices"
-                type="article"
-                link="https://css-tricks.com/"
-              />
-              <ResourceCard 
-                title="JavaScript Design Patterns"
-                description="Understanding common design patterns in JavaScript"
-                type="article"
-                link="https://www.patterns.dev/posts"
-              />
+              {filteredResources.filter(resource => resource.type === "article").map((resource, index) => (
+                <ResourceCard 
+                  key={`articles-resource-${index}`}
+                  title={resource.title}
+                  description={resource.description}
+                  type={resource.type}
+                  link={resource.link}
+                />
+              ))}
             </div>
           </TabsContent>
           
-          <TabsContent value="courses" className="w-full">
+          <TabsContent value="videos" className="w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <ResourceCard 
-                title="React Complete Course"
-                description="Master React.js from basics to advanced concepts"
-                type="course"
-                link="https://www.freecodecamp.org/learn/front-end-development-libraries/"
-              />
-              <ResourceCard 
-                title="Full Stack Web Development"
-                description="Learn to build complete web applications from scratch"
-                type="course"
-                link="https://www.freecodecamp.org/learn/"
-              />
-              <ResourceCard 
-                title="Data Structures & Algorithms"
-                description="Master the fundamentals of DSA for technical interviews"
-                type="course"
-                link="https://www.coursera.org/learn/algorithms-part1"
-              />
+              {filteredResources.filter(resource => resource.type === "video").map((resource, index) => (
+                <ResourceCard 
+                  key={`videos-resource-${index}`}
+                  title={resource.title}
+                  description={resource.description}
+                  type={resource.type}
+                  link={resource.link}
+                />
+              ))}
             </div>
           </TabsContent>
           
-          <TabsContent value="tools" className="w-full">
+          <TabsContent value="tutorials" className="w-full">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              <ResourceCard 
-                title="VS Code Productivity Tips"
-                description="Boost your coding efficiency with these VS Code tricks"
-                type="tool"
-                link="https://code.visualstudio.com/docs/editor/codebasics"
-              />
-              <ResourceCard 
-                title="GitHub Copilot"
-                description="AI-powered code completion and assistance"
-                type="tool"
-                link="https://github.com/features/copilot"
-              />
-              <ResourceCard 
-                title="CodePen"
-                description="Social development environment for front-end designers and developers"
-                type="tool"
-                link="https://codepen.io/"
-              />
+              {filteredResources.filter(resource => resource.type === "tutorial").map((resource, index) => (
+                <ResourceCard 
+                  key={`tutorials-resource-${index}`}
+                  title={resource.title}
+                  description={resource.description}
+                  type={resource.type}
+                  link={resource.link}
+                />
+              ))}
             </div>
           </TabsContent>
         </Tabs>
@@ -259,11 +186,11 @@ const ResourceCard = ({ title, description, type, link }: ResourceCardProps) => 
       case "article":
         return <FileText className="h-5 w-5 text-blue-500" />;
       case "course":
-        return <Book className="h-5 w-5 text-green-500" />;
+        return <BookOpen className="h-5 w-5 text-green-500" />;
       case "tool":
-        return <Code className="h-5 w-5 text-purple-500" />;
+        return <Link2 className="h-5 w-5 text-purple-500" />;
       default:
-        return <LinkIcon className="h-5 w-5 text-gray-500" />;
+        return <Link2 className="h-5 w-5 text-gray-500" />;
     }
   };
 
@@ -283,7 +210,7 @@ const ResourceCard = ({ title, description, type, link }: ResourceCardProps) => 
           rel="noopener noreferrer" 
           className="text-career-blue hover:text-career-teal inline-flex items-center transition-colors"
         >
-          View Resource <LinkIcon className="ml-1 h-4 w-4" />
+          View Resource <Link2 className="ml-1 h-4 w-4" />
         </a>
       </CardContent>
     </Card>

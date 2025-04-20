@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { roadmaps } from "@/data/roadmaps";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import RoadmapCard from "@/components/RoadmapCard";
 import ProgressTracker from "@/components/ProgressTracker";
@@ -10,13 +11,43 @@ import { Button } from "@/components/ui/button";
 import { BookOpen, ArrowRight } from "lucide-react";
 
 const Home = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+  const [roadmapProgress, setRoadmapProgress] = useState<Record<string, number>>({});
+  
+  useEffect(() => {
+    if (!user) return;
+    
+    const fetchProgress = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('roadmap_progress')
+          .select('roadmap_id, progress')
+          .eq('user_id', user.id);
+          
+        if (error) throw error;
+        
+        if (data) {
+          const progressMap: Record<string, number> = {};
+          data.forEach(item => {
+            progressMap[item.roadmap_id] = item.progress;
+          });
+          setRoadmapProgress(progressMap);
+        }
+      } catch (error) {
+        console.error('Error fetching roadmap progress:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProgress();
+  }, [user]);
   
   // Get the recommended roadmap based on user's dream job
   const getRecommendedRoadmap = () => {
-    if (!user) return null;
+    if (!profile) return null;
     
     const dreamJobMap: Record<string, string> = {
       frontend: "frontend-dev",
@@ -30,23 +61,23 @@ const Home = () => {
       other: "frontend-dev", // Default to frontend
     };
     
-    const roadmapId = dreamJobMap[user.dreamJob] || "frontend-dev";
+    const roadmapId = dreamJobMap[profile.dreamJob] || "frontend-dev";
     return roadmaps.find(r => r.id === roadmapId) || roadmaps[0];
   };
   
   // Get the most recently worked on roadmap
   const getMostRecentRoadmap = () => {
-    if (!user || !user.progress) return null;
+    if (!roadmapProgress) return null;
     
-    const roadmapIds = Object.keys(user.progress);
+    const roadmapIds = Object.keys(roadmapProgress);
     if (roadmapIds.length === 0) return null;
     
     // Find the roadmap with the highest progress that's not complete
-    const incompleteMaps = roadmapIds.filter(id => user.progress[id] < 100);
+    const incompleteMaps = roadmapIds.filter(id => roadmapProgress[id] < 100);
     if (incompleteMaps.length === 0) return null;
     
     // Sort by progress (highest first)
-    incompleteMaps.sort((a, b) => user.progress[b] - user.progress[a]);
+    incompleteMaps.sort((a, b) => roadmapProgress[b] - roadmapProgress[a]);
     
     return roadmaps.find(r => r.id === incompleteMaps[0]) || null;
   };
@@ -56,7 +87,6 @@ const Home = () => {
     if (!isAuthenticated && !loading) {
       navigate('/');
     }
-    setLoading(false);
   }, [isAuthenticated, navigate, loading]);
 
   if (loading) {
@@ -76,7 +106,7 @@ const Home = () => {
         <section className="mb-10">
           <div className="bg-white rounded-lg shadow-md p-6 sm:p-8 border border-gray-100">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-              Welcome back, {user?.fullName?.split(' ')[0]}!
+              Welcome back, {profile?.fullName?.split(' ')[0] || 'User'}!
             </h1>
             <p className="mt-2 text-gray-600">
               "Success is not final, failure is not fatal: It is the courage to continue that counts."
@@ -86,7 +116,7 @@ const Home = () => {
               <div className="mt-6 sm:flex sm:items-center sm:justify-between">
                 <div>
                   <h2 className="text-lg font-medium text-gray-900">
-                    {user?.progress && user.progress[suggestedRoadmap.id] ? 'Continue where you left off:' : 'Recommended for you:'}
+                    {roadmapProgress && roadmapProgress[suggestedRoadmap.id] ? 'Continue where you left off:' : 'Recommended for you:'}
                   </h2>
                   <p className="mt-1 text-sm text-gray-500">{suggestedRoadmap.title} Roadmap</p>
                 </div>
@@ -96,7 +126,7 @@ const Home = () => {
                     className="w-full sm:w-auto flex items-center"
                   >
                     <BookOpen className="mr-2 h-4 w-4" />
-                    {user?.progress && user.progress[suggestedRoadmap.id] ? 'Continue Learning' : 'Start Learning'}
+                    {roadmapProgress && roadmapProgress[suggestedRoadmap.id] ? 'Continue Learning' : 'Start Learning'}
                     <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </div>

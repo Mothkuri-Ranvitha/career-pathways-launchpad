@@ -11,6 +11,17 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { CheckCircle, BookOpen, Video, FileText, Bookmark, ArrowLeft, ExternalLink } from "lucide-react";
 
+interface RoadmapStep {
+  id: string;
+  title: string;
+  description: string;
+  resources: {
+    name: string;
+    url: string;
+    type: string;
+  }[];
+}
+
 const RoadmapDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

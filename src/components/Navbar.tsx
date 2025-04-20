@@ -14,7 +14,7 @@ import {
 import { Menu, User, BookOpen, BarChart, LogOut } from "lucide-react";
 
 const Navbar = () => {
-  const { user, isAuthenticated, logout } = useAuth();
+  const { user, profile, isAuthenticated, logout } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
@@ -58,16 +58,16 @@ const Navbar = () => {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <div className="h-8 w-8 rounded-full bg-career-blue text-white flex items-center justify-center">
-                      {user?.fullName.charAt(0)}
+                      {profile?.fullName.charAt(0)}
                     </div>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user?.fullName}</p>
+                      <p className="text-sm font-medium leading-none">{profile?.fullName}</p>
                       <p className="text-xs leading-none text-muted-foreground">
-                        {user?.email}
+                        {profile?.email}
                       </p>
                     </div>
                   </DropdownMenuLabel>
@@ -156,15 +156,15 @@ const Navbar = () => {
                 <div className="flex items-center px-4">
                   <div className="flex-shrink-0">
                     <div className="h-10 w-10 rounded-full bg-career-blue text-white flex items-center justify-center">
-                      {user?.fullName.charAt(0)}
+                      {profile?.fullName.charAt(0)}
                     </div>
                   </div>
                   <div className="ml-3">
                     <div className="text-base font-medium text-gray-800">
-                      {user?.fullName}
+                      {profile?.fullName}
                     </div>
                     <div className="text-sm font-medium text-gray-500">
-                      {user?.email}
+                      {profile?.email}
                     </div>
                   </div>
                 </div>

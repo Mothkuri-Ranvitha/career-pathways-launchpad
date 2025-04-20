@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { roadmaps } from "@/data/roadmaps";
+import { supabase } from "@/integrations/supabase/client";
 import Navbar from "@/components/Navbar";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
@@ -11,21 +12,51 @@ import { ChevronRight, LineChart, Trophy, Clock } from "lucide-react";
 const ProgressPage = () => {
   const { user, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [roadmapProgress, setRoadmapProgress] = useState<Record<string, number>>({});
   
   useEffect(() => {
     if (!isAuthenticated) {
       navigate('/login');
+      return;
     }
-  }, [isAuthenticated, navigate]);
+    
+    if (!user) return;
+    
+    const fetchProgress = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('roadmap_progress')
+          .select('roadmap_id, progress')
+          .eq('user_id', user.id);
+          
+        if (error) throw error;
+        
+        if (data) {
+          const progressMap: Record<string, number> = {};
+          data.forEach(item => {
+            progressMap[item.roadmap_id] = item.progress;
+          });
+          setRoadmapProgress(progressMap);
+        }
+      } catch (error) {
+        console.error('Error fetching roadmap progress:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchProgress();
+  }, [isAuthenticated, navigate, user]);
 
-  if (!user) {
+  if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   // Get all roadmaps with progress
   const roadmapsWithProgress = roadmaps.map(roadmap => ({
     ...roadmap,
-    progress: user.progress?.[roadmap.id] || 0
+    progress: roadmapProgress[roadmap.id] || 0
   }));
 
   // Sort by progress (highest first)

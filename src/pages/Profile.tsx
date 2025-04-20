@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ArrowLeft, User, Clock, Briefcase } from "lucide-react";
 
 const Profile = () => {
-  const { user, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated } = useAuth();
   const navigate = useNavigate();
   
   useEffect(() => {
@@ -39,8 +39,8 @@ const Profile = () => {
     return `${time} ${parseInt(time) === 1 ? 'hour' : 'hours'} per day`;
   };
 
-  if (!user) {
-    return null;
+  if (!user || !profile) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   return (
@@ -61,12 +61,12 @@ const Profile = () => {
           <div className="px-4 sm:px-6 lg:px-8 pb-6">
             <div className="flex flex-col sm:flex-row sm:items-end -mt-16 sm:space-x-6">
               <div className="h-24 w-24 rounded-full border-4 border-white bg-career-blue text-white flex items-center justify-center text-3xl font-bold">
-                {user.fullName.charAt(0)}
+                {profile.fullName.charAt(0)}
               </div>
               
               <div className="mt-6 sm:mt-0 sm:flex-1">
-                <h1 className="text-2xl font-bold text-gray-900">{user.fullName}</h1>
-                <p className="text-gray-600">{user.email}</p>
+                <h1 className="text-2xl font-bold text-gray-900">{profile.fullName}</h1>
+                <p className="text-gray-600">{profile.email}</p>
               </div>
             </div>
             
@@ -80,7 +80,7 @@ const Profile = () => {
                       <User className="h-5 w-5 text-career-blue mt-0.5 mr-3" />
                       <div>
                         <h3 className="text-sm font-medium text-gray-500">Full Name</h3>
-                        <p className="text-gray-900">{user.fullName}</p>
+                        <p className="text-gray-900">{profile.fullName}</p>
                       </div>
                     </div>
                     
@@ -88,7 +88,7 @@ const Profile = () => {
                       <Briefcase className="h-5 w-5 text-career-blue mt-0.5 mr-3" />
                       <div>
                         <h3 className="text-sm font-medium text-gray-500">Dream Job</h3>
-                        <p className="text-gray-900">{getDreamJobTitle(user.dreamJob)}</p>
+                        <p className="text-gray-900">{getDreamJobTitle(profile.dreamJob)}</p>
                       </div>
                     </div>
                     
@@ -96,7 +96,7 @@ const Profile = () => {
                       <Clock className="h-5 w-5 text-career-blue mt-0.5 mr-3" />
                       <div>
                         <h3 className="text-sm font-medium text-gray-500">Daily Time Commitment</h3>
-                        <p className="text-gray-900">{getDailyTimeString(user.dailyTime)}</p>
+                        <p className="text-gray-900">{getDailyTimeString(profile.dailyTime)}</p>
                       </div>
                     </div>
                   </div>
@@ -112,7 +112,7 @@ const Profile = () => {
                   <div className="space-y-4">
                     <div>
                       <h3 className="text-sm font-medium text-gray-500">Email</h3>
-                      <p className="text-gray-900">{user.email}</p>
+                      <p className="text-gray-900">{profile.email}</p>
                     </div>
                     
                     <div>

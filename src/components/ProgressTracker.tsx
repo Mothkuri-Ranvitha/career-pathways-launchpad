@@ -3,28 +3,43 @@ import { Progress } from "@/components/ui/progress";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { roadmaps } from "@/data/roadmaps";
+import { supabase } from "@/integrations/supabase/client";
 
 const ProgressTracker = () => {
   const { user } = useAuth();
   const [overallProgress, setOverallProgress] = useState(0);
+  const [roadmapProgress, setRoadmapProgress] = useState<Record<string, number>>({});
 
   useEffect(() => {
-    if (user && user.progress) {
-      // Calculate overall progress by averaging all roadmap progresses
-      const roadmapIds = Object.keys(user.progress);
-      if (roadmapIds.length === 0) {
-        setOverallProgress(0);
-        return;
+    if (!user) return;
+    
+    const fetchProgress = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('roadmap_progress')
+          .select('roadmap_id, progress')
+          .eq('user_id', user.id);
+        
+        if (error) throw error;
+        
+        if (data && data.length > 0) {
+          const progressMap: Record<string, number> = {};
+          let totalProgress = 0;
+          
+          data.forEach(item => {
+            progressMap[item.roadmap_id] = item.progress;
+            totalProgress += item.progress;
+          });
+          
+          setRoadmapProgress(progressMap);
+          setOverallProgress(totalProgress / data.length);
+        }
+      } catch (error) {
+        console.error('Error fetching progress:', error);
       }
-      
-      const totalProgress = roadmapIds.reduce((acc, roadmapId) => {
-        return acc + user.progress[roadmapId];
-      }, 0);
-      
-      setOverallProgress(totalProgress / roadmapIds.length);
-    } else {
-      setOverallProgress(0);
-    }
+    };
+    
+    fetchProgress();
   }, [user]);
 
   if (!user) return null;
@@ -46,7 +61,7 @@ const ProgressTracker = () => {
           <h4 className="text-sm font-medium mb-2">Roadmaps Progress</h4>
           
           {roadmaps.map(roadmap => {
-            const progress = user.progress[roadmap.id] || 0;
+            const progress = roadmapProgress[roadmap.id] || 0;
             
             return (
               <div key={roadmap.id} className="space-y-1">
