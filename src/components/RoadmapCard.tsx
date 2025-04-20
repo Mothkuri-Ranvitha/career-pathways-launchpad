@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Roadmap } from "@/data/roadmaps";
 import { useAuth } from "@/context/AuthContext";
 
@@ -24,12 +25,7 @@ const RoadmapCard = ({ roadmap }: RoadmapCardProps) => {
         <CardDescription>{roadmap.description}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="progress-container mb-4">
-          <div 
-            className="progress-bar" 
-            style={{ width: `${progress}%` }} 
-          />
-        </div>
+        <Progress value={progress} className="h-2 mb-2" />
         <p className="text-sm text-gray-600">
           {completedSteps} of {roadmap.steps.length} steps completed ({Math.round(progress)}%)
         </p>
