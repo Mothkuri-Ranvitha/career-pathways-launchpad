@@ -63,6 +63,8 @@ const RoadmapDetail = () => {
   }, [id, currentRoadmap, isAuthenticated, navigate, user]);
 
   const handleStepToggle = (stepId: string, checked: boolean) => {
+    console.log("Step toggled:", stepId, "Checked:", checked);
+    
     const newCompletedSteps = {
       ...completedSteps,
       [stepId]: checked
@@ -77,10 +79,13 @@ const RoadmapDetail = () => {
     const completedCount = Object.values(newCompletedSteps).filter(Boolean).length;
     const newProgress = Math.round((completedCount / totalSteps) * 100);
     
+    console.log("New progress:", newProgress, "Completed count:", completedCount, "Total steps:", totalSteps);
+    
     setProgress(newProgress);
     
     // Update progress in user context
     if (id) {
+      console.log("Updating progress for roadmap:", id, "New progress:", newProgress);
       updateProgress(id, newProgress);
       toast.success(`Progress updated: ${newProgress}%`);
     }
@@ -166,7 +171,7 @@ const StepCard = ({ step, index, isCompleted, onToggleComplete }: StepCardProps)
               <Checkbox 
                 id={`complete-${step.id}`}
                 checked={isCompleted}
-                onCheckedChange={onToggleComplete}
+                onCheckedChange={(checked) => onToggleComplete(checked === true)}
                 className="h-5 w-5 border-2"
               />
               <label 

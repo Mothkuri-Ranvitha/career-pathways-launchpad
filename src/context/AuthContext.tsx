@@ -71,9 +71,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // Remove password before setting user
       const { password: _, ...userWithoutPassword } = matchedUser;
       
+      // Ensure progress object exists
+      const userWithProgress = {
+        ...userWithoutPassword,
+        progress: userWithoutPassword.progress || {}
+      };
+      
       // Save to state and localStorage
-      setUser(userWithoutPassword);
-      localStorage.setItem("user", JSON.stringify(userWithoutPassword));
+      setUser(userWithProgress);
+      localStorage.setItem("user", JSON.stringify(userWithProgress));
     } catch (error) {
       console.error("Login error:", error);
       throw error;
@@ -136,6 +142,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const updateProgress = (roadmapId: string, progress: number) => {
     if (!user) return;
     
+    console.log("Updating progress in AuthContext:", roadmapId, progress);
+    
+    // Create updated user object
     const updatedUser = {
       ...user,
       progress: {
@@ -144,6 +153,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     
+    // Update state and localStorage
     setUser(updatedUser);
     localStorage.setItem("user", JSON.stringify(updatedUser));
     
@@ -153,6 +163,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       u.id === user.id ? { ...u, progress: updatedUser.progress } : u
     );
     localStorage.setItem("users", JSON.stringify(updatedUsers));
+    
+    console.log("Progress updated. New user state:", updatedUser);
   };
 
   return (
