@@ -11,12 +11,17 @@ import { Button } from "@/components/ui/button";
 import { BookOpen, ArrowRight } from "lucide-react";
 
 const Home = () => {
-  const { user, profile, isAuthenticated } = useAuth();
+  const { user, profile, isAuthenticated, loading } = useAuth();
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const [roadmapLoading, setRoadmapLoading] = useState(true);
   const [roadmapProgress, setRoadmapProgress] = useState<Record<string, number>>({});
   
   useEffect(() => {
+    if (!loading && !isAuthenticated) {
+      navigate('/login');
+      return;
+    }
+    
     if (!user) return;
     
     const fetchProgress = async () => {
@@ -38,12 +43,12 @@ const Home = () => {
       } catch (error) {
         console.error('Error fetching roadmap progress:', error);
       } finally {
-        setLoading(false);
+        setRoadmapLoading(false);
       }
     };
     
     fetchProgress();
-  }, [user]);
+  }, [user, isAuthenticated, loading, navigate]);
   
   // Get the recommended roadmap based on user's dream job
   const getRecommendedRoadmap = () => {
@@ -82,15 +87,15 @@ const Home = () => {
     return roadmaps.find(r => r.id === incompleteMaps[0]) || null;
   };
 
-  useEffect(() => {
-    // Redirect to landing page if not authenticated
-    if (!isAuthenticated && !loading) {
-      navigate('/');
-    }
-  }, [isAuthenticated, navigate, loading]);
-
-  if (loading) {
-    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  if (loading || roadmapLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-career-blue mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your dashboard...</p>
+        </div>
+      </div>
+    );
   }
 
   const recommendedRoadmap = getRecommendedRoadmap();

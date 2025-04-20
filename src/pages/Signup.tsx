@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { toast } from "sonner";
 
 const Signup = () => {
   const [step, setStep] = useState(1);
@@ -29,7 +29,7 @@ const Signup = () => {
   
   const navigate = useNavigate();
   const { signup } = useAuth();
-  const { toast } = useToast();
+  const { toast: uiToast } = useToast();
 
   const validateStep1 = () => {
     const newErrors: Record<string, string> = {};
@@ -113,16 +113,21 @@ const Signup = () => {
           dailyTime: formData.dailyTime,
         });
         
-        toast({
+        uiToast({
           title: "Account created!",
           description: "Welcome to CareerLaunch. Let's start your journey!",
         });
         
-        navigate("/home");
+        toast.success("Account created! Welcome to CareerLaunch.");
+        
+        setTimeout(() => {
+          navigate("/home");
+        }, 500);
       } catch (error: any) {
         setErrors({
           form: error.message || "Failed to create account",
         });
+        toast.error(error.message || "Failed to create account");
       } finally {
         setIsLoading(false);
       }

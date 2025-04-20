@@ -50,6 +50,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
+      } else {
+        setLoading(false);
       }
     });
 
@@ -57,13 +59,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("Auth state changed:", event, session?.user?.id);
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
       } else {
         setProfile(null);
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => {
@@ -73,15 +76,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const fetchProfile = async (userId: string) => {
     try {
+      console.log("Fetching profile for user:", userId);
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("id", userId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching profile:", error);
+        setLoading(false);
+        throw error;
+      }
 
       if (data) {
+        console.log("Profile data:", data);
         setProfile({
           id: data.id,
           fullName: data.full_name,
@@ -90,14 +99,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           dailyTime: data.daily_time,
         });
       }
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching profile:", error);
       toast.error("Failed to fetch user profile");
+      setLoading(false);
     }
   };
 
   const login = async (email: string, password: string) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signInWithPassword({
         email,
         password,
@@ -117,6 +129,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     dailyTime: string;
   }) => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
@@ -130,6 +143,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
 
       if (error) throw error;
+      
+      toast.success("Account created successfully!");
     } catch (error: any) {
       console.error("Signup error:", error);
       throw error;
@@ -138,11 +153,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = async () => {
     try {
+      setLoading(true);
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
     } catch (error: any) {
       console.error("Logout error:", error);
       throw error;
+    } finally {
+      setLoading(false);
     }
   };
 
