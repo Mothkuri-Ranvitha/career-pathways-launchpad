@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -6,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Search, BookOpen, Video, FileText, Link2 } from "lucide-react";
-import { resources } from "@/data/resources";
+import { resources, Resource } from "@/data/resources";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 const Resources = () => {
   const { user, profile, isAuthenticated } = useAuth();
@@ -174,7 +176,7 @@ const Resources = () => {
 interface ResourceCardProps {
   title: string;
   description: string;
-  type: "video" | "article" | "course" | "tool";
+  type: "video" | "article" | "course" | "tool" | "tutorial";
   link: string;
 }
 
