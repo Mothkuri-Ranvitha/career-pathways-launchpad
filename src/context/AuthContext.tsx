@@ -47,6 +47,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("Initial session check:", session?.user?.id || "No session");
       setUser(session?.user ?? null);
       if (session?.user) {
         fetchProfile(session.user.id);
@@ -99,6 +100,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           dailyTime: data.daily_time,
         });
       }
+      
+      // Always set loading to false after profile fetch attempt
       setLoading(false);
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -117,6 +120,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (error) throw error;
     } catch (error: any) {
       console.error("Login error:", error);
+      setLoading(false);
       throw error;
     }
   };
@@ -130,7 +134,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }) => {
     try {
       setLoading(true);
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email: userData.email,
         password: userData.password,
         options: {
@@ -144,9 +148,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       if (error) throw error;
       
+      // If successful signup but no user yet (email confirmation required)
+      if (!data.user) {
+        setLoading(false);
+        toast.success("Verification email sent. Please check your inbox.");
+        return;
+      }
+      
+      // Create a mock profile for immediate use until real one is created
+      setProfile({
+        id: data.user.id,
+        fullName: userData.fullName,
+        email: userData.email,
+        dreamJob: userData.dreamJob,
+        dailyTime: userData.dailyTime,
+      });
+      
       toast.success("Account created successfully!");
+      setLoading(false);
     } catch (error: any) {
       console.error("Signup error:", error);
+      setLoading(false);
       throw error;
     }
   };

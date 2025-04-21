@@ -120,15 +120,12 @@ const Signup = () => {
         
         toast.success("Account created! Welcome to CareerLaunch.");
         
-        setTimeout(() => {
-          navigate("/home");
-        }, 500);
+        navigate("/home");
       } catch (error: any) {
         setErrors({
           form: error.message || "Failed to create account",
         });
         toast.error(error.message || "Failed to create account");
-      } finally {
         setIsLoading(false);
       }
     }

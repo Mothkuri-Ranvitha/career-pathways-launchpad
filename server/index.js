@@ -6,8 +6,13 @@ const bodyParser = require('body-parser');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(cors());
+// Configure CORS to allow requests from the frontend
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://preview--career-pathways-launchpad.lovable.app'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true
+}));
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
@@ -53,6 +58,22 @@ app.post('/api/progress', (req, res) => {
     progress,
     message: 'Progress updated successfully' 
   });
+});
+
+// Add a users API endpoint
+app.get('/api/users/:id', (req, res) => {
+  const userId = req.params.id;
+  
+  // Mock user data
+  const user = {
+    id: userId,
+    name: 'Test User',
+    email: 'user@example.com',
+    dreamJob: 'frontend',
+    dailyTime: '2'
+  };
+  
+  res.status(200).json(user);
 });
 
 // Start server

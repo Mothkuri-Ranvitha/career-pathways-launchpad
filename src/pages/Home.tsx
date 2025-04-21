@@ -17,15 +17,22 @@ const Home = () => {
   const [roadmapProgress, setRoadmapProgress] = useState<Record<string, number>>({});
   
   useEffect(() => {
+    // If not loading and not authenticated, redirect to login
     if (!loading && !isAuthenticated) {
+      console.log("Not authenticated, redirecting to login");
       navigate('/login');
       return;
     }
     
-    if (!user) return;
+    // If there's no user, don't try to fetch progress
+    if (!user) {
+      setRoadmapLoading(false);
+      return;
+    }
     
     const fetchProgress = async () => {
       try {
+        console.log("Fetching roadmap progress for user:", user.id);
         const { data, error } = await supabase
           .from('roadmap_progress')
           .select('roadmap_id, progress')
@@ -87,12 +94,24 @@ const Home = () => {
     return roadmaps.find(r => r.id === incompleteMaps[0]) || null;
   };
 
-  if (loading || roadmapLoading) {
+  // Show loading state with more details
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-career-blue mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading your dashboard...</p>
+          <p className="text-gray-600">Loading authentication data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (roadmapLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-10 w-10 border-t-2 border-b-2 border-career-blue mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your roadmap data...</p>
         </div>
       </div>
     );
