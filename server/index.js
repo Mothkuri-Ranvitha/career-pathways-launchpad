@@ -13,27 +13,50 @@ let PROGRESS_DB = {};
 
 const USERS_FILE = './users.json';
 
+// Debug logging for file operations
 function saveUsersToFile() {
-  fs.writeFileSync(USERS_FILE, JSON.stringify(USERS, null, 2));
-}
-
-function loadUsersFromFile() {
-  if (fs.existsSync(USERS_FILE)) {
-    USERS = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+  try {
+    fs.writeFileSync(USERS_FILE, JSON.stringify(USERS, null, 2));
+    console.log('Users saved to file successfully');
+  } catch (error) {
+    console.error('Error saving users to file:', error);
   }
 }
 
+function loadUsersFromFile() {
+  try {
+    if (fs.existsSync(USERS_FILE)) {
+      USERS = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
+      console.log('Users loaded from file successfully');
+    } else {
+      console.log('Users file not found, starting with empty array');
+    }
+  } catch (error) {
+    console.error('Error loading users from file:', error);
+    USERS = []; // Reset to empty array on error
+  }
+}
+
+// Load users on startup
 loadUsersFromFile();
 
-// CORS policy for frontend preview/localhost
+// Improved CORS configuration
 app.use(cors({
-  origin: '*', // Allow all origins for development
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://edff1596-2edd-4c73-b293-c6999d901b0b.lovableproject.com'],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  credentials: true
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// Middleware for parsing request bodies
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -46,10 +69,12 @@ app.post('/api/users', (req, res) => {
   const { fullName, email, password, dreamJob, dailyTime } = req.body;
   
   if (!fullName || !email || !password) {
+    console.log('Missing required fields');
     return res.status(400).json({ message: 'Missing required fields' });
   }
   
   if (USERS.some(u => u.email === email)) {
+    console.log('Email already exists:', email);
     return res.status(409).json({ message: 'Email already exists' });
   }
   
@@ -65,6 +90,8 @@ app.post('/api/users', (req, res) => {
   USERS.push(user);
   saveUsersToFile();
   
+  console.log('User created successfully:', user.id);
+  
   // Do not return password!
   const { password: pw, ...safeUser } = user;
   res.status(201).json(safeUser);
@@ -72,11 +99,14 @@ app.post('/api/users', (req, res) => {
 
 // Login
 app.post('/api/login', (req, res) => {
+  console.log('Login request received');
   const { email, password } = req.body;
   const user = USERS.find(u => u.email === email && u.password === password);
   if (!user) {
+    console.log('Invalid login attempt for:', email);
     return res.status(401).json({ message: 'Invalid credentials' });
   }
+  console.log('User logged in successfully:', user.id);
   const { password: pw, ...safeUser } = user;
   res.json(safeUser);
 });
@@ -84,8 +114,10 @@ app.post('/api/login', (req, res) => {
 // Get user profile
 app.get('/api/users/:email', (req, res) => {
   const email = decodeURIComponent(req.params.email);
+  console.log('Profile request for:', email);
   const user = USERS.find(u => u.email === email);
   if (!user) {
+    console.log('User not found:', email);
     return res.status(404).json({ message: "User not found" });
   }
   const { password: pw, ...safeUser } = user;
@@ -95,6 +127,7 @@ app.get('/api/users/:email', (req, res) => {
 // Save progress
 app.post('/api/progress', (req, res) => {
   const { userId, roadmapId, progress } = req.body;
+  console.log('Saving progress:', userId, roadmapId, progress);
   if (!PROGRESS_DB[userId]) PROGRESS_DB[userId] = {};
   PROGRESS_DB[userId][roadmapId] = progress;
   res.status(200).json({ userId, roadmapId, progress, message: 'Progress updated' });
@@ -119,6 +152,13 @@ app.get('/api/resources', (req, res) => {
   res.status(200).json(resources);
 });
 
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server error:', err);
+  res.status(500).json({ message: 'Internal server error' });
+});
+
+// Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });

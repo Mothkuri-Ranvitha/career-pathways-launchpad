@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -14,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { toast } from "sonner";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 const Signup = () => {
   const [step, setStep] = useState(1);
@@ -27,6 +27,7 @@ const Signup = () => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [networkError, setNetworkError] = useState<string | null>(null);
   
   const navigate = useNavigate();
   const { signup } = useAuth();
@@ -82,6 +83,7 @@ const Signup = () => {
 
   const handlePrevStep = () => {
     setStep(1);
+    setNetworkError(null);
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -103,7 +105,10 @@ const Signup = () => {
     e.preventDefault();
     if (step === 2 && validateStep2()) {
       setIsLoading(true);
+      setNetworkError(null);
+      
       try {
+        console.log("Submitting signup form...");
         await signup({
           fullName: formData.fullName,
           email: formData.email,
@@ -111,18 +116,33 @@ const Signup = () => {
           dreamJob: formData.dreamJob,
           dailyTime: formData.dailyTime,
         });
+        
+        console.log("Signup successful");
         uiToast({
           title: "Account created!",
           description: "Welcome to CareerLaunch. Let's start your journey!",
         });
         toast.success("Account created! Welcome to CareerLaunch.");
-        navigate("/home");
+        
+        // Small delay before navigation to allow toast to be shown
+        setTimeout(() => {
+          navigate("/home");
+        }, 500);
       } catch (error: any) {
-        console.error("Signup error:", error);
-        setErrors({
-          form: error.message || "Failed to create account. Please try again.",
-        });
-        toast.error(error.message || "Failed to create account");
+        console.error("Signup form submission error:", error);
+        
+        // Handle network error specifically
+        if (error.message === "Failed to fetch") {
+          setNetworkError(
+            "Cannot connect to the server. Please make sure the backend server is running on port 5000."
+          );
+        } else {
+          setErrors({
+            form: error.message || "Failed to create account. Please try again.",
+          });
+          toast.error(error.message || "Failed to create account");
+        }
+        
         setIsLoading(false);
       }
     }
@@ -158,6 +178,18 @@ const Signup = () => {
               </div>
             </div>
           </div>
+        )}
+        
+        {networkError && (
+          <Alert variant="destructive" className="my-4">
+            <AlertTitle>Connection Error</AlertTitle>
+            <AlertDescription>
+              {networkError}
+              <p className="mt-2 text-sm">
+                Make sure to run the backend server with <code>node server/index.js</code>
+              </p>
+            </AlertDescription>
+          </Alert>
         )}
         
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
@@ -300,6 +332,7 @@ const Signup = () => {
                   type="button"
                   onClick={handlePrevStep}
                   variant="outline"
+                  disabled={isLoading}
                   className="group relative w-full flex justify-center py-2 px-4 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-career-teal"
                 >
                   Back
@@ -310,7 +343,14 @@ const Signup = () => {
                   disabled={isLoading}
                   className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-career-blue hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-career-teal"
                 >
-                  {isLoading ? "Creating Account..." : "Create Account"}
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Creating Account...
+                    </>
+                  ) : (
+                    "Create Account"
+                  )}
                 </Button>
               </div>
             </div>
