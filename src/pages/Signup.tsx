@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -106,6 +107,7 @@ const Signup = () => {
     if (step === 2 && validateStep2()) {
       setIsLoading(true);
       setNetworkError(null);
+      setErrors({});
       
       try {
         console.log("Submitting signup form...");
@@ -132,7 +134,8 @@ const Signup = () => {
         console.error("Signup form submission error:", error);
         
         // Handle network error specifically
-        if (error.message === "Failed to fetch") {
+        if (error.message === "Failed to fetch" || 
+            error.message.includes("Cannot connect to server")) {
           setNetworkError(
             "Cannot connect to the server. Please make sure the backend server is running on port 5000."
           );

@@ -1,5 +1,6 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
+import { toast } from "sonner";
 
 type Profile = {
   id: string;
@@ -40,9 +41,8 @@ const LOCAL_USER_KEY = "careerlaunch_user";
 const LOCAL_PROFILE_KEY = "careerlaunch_profile";
 
 // Define a base URL that will work in both development and preview environments
-const API_BASE_URL = window.location.hostname === 'localhost' 
-  ? "http://localhost:5000/api" 
-  : "https://edff1596-2edd-4c73-b293-c6999d901b0b.lovableproject.com/api";
+// The backend server needs to be running on port 5000
+const API_BASE_URL = "http://localhost:5000";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Profile | null>(null);
@@ -72,7 +72,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ email, password }),
-        credentials: 'include'
       });
       
       if (!response.ok) {
@@ -113,13 +112,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         console.log("Health check response:", healthCheck.ok, await healthCheck.text());
       } catch (error) {
         console.error("Health check failed:", error);
+        throw new Error("Cannot connect to server. Please make sure the backend server is running on port 5000.");
       }
       
       const response = await fetch(`${API_BASE_URL}/users`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(userData),
-        credentials: 'include'
       });
       
       console.log("Signup response status:", response.status);
@@ -144,6 +143,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(data));
       localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(data));
       
+      toast.success("Account created successfully!");
       setLoading(false);
     } catch (error: any) {
       console.error("Signup error:", error);
@@ -173,7 +173,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           roadmapId,
           progress,
         }),
-        credentials: 'include'
       });
       
       if (!response.ok) {

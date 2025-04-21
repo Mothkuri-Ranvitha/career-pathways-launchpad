@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
 const fs = require('fs');
+const path = require('path');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -11,7 +12,7 @@ const PORT = process.env.PORT || 5000;
 let USERS = [];
 let PROGRESS_DB = {};
 
-const USERS_FILE = './users.json';
+const USERS_FILE = path.join(__dirname, 'users.json');
 
 // Debug logging for file operations
 function saveUsersToFile() {
@@ -40,9 +41,9 @@ function loadUsersFromFile() {
 // Load users on startup
 loadUsersFromFile();
 
-// Improved CORS configuration
+// Improved CORS configuration - accept all origins in development
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://edff1596-2edd-4c73-b293-c6999d901b0b.lovableproject.com'],
+  origin: '*', // Allow all origins
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -55,16 +56,17 @@ app.use(bodyParser.urlencoded({ extended: true }));
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Request body:', req.body);
   next();
 });
 
 // Health check
-app.get('/api/health', (req, res) => {
+app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', message: 'Server is running' });
 });
 
 // Sign up
-app.post('/api/users', (req, res) => {
+app.post('/users', (req, res) => {
   console.log('Sign up request received:', req.body);
   const { fullName, email, password, dreamJob, dailyTime } = req.body;
   
@@ -98,7 +100,7 @@ app.post('/api/users', (req, res) => {
 });
 
 // Login
-app.post('/api/login', (req, res) => {
+app.post('/login', (req, res) => {
   console.log('Login request received');
   const { email, password } = req.body;
   const user = USERS.find(u => u.email === email && u.password === password);
@@ -112,7 +114,7 @@ app.post('/api/login', (req, res) => {
 });
 
 // Get user profile
-app.get('/api/users/:email', (req, res) => {
+app.get('/users/:email', (req, res) => {
   const email = decodeURIComponent(req.params.email);
   console.log('Profile request for:', email);
   const user = USERS.find(u => u.email === email);
@@ -125,7 +127,7 @@ app.get('/api/users/:email', (req, res) => {
 });
 
 // Save progress
-app.post('/api/progress', (req, res) => {
+app.post('/progress', (req, res) => {
   const { userId, roadmapId, progress } = req.body;
   console.log('Saving progress:', userId, roadmapId, progress);
   if (!PROGRESS_DB[userId]) PROGRESS_DB[userId] = {};
@@ -134,7 +136,7 @@ app.post('/api/progress', (req, res) => {
 });
 
 // Mock roadmaps/resources endpoints as before
-app.get('/api/roadmaps', (req, res) => {
+app.get('/roadmaps', (req, res) => {
   const roadmaps = [
     { id: '1', title: 'Web Development', description: 'Learn full-stack web development', progress: 0 },
     { id: '2', title: 'Machine Learning', description: 'Master machine learning concepts', progress: 0 },
@@ -143,7 +145,7 @@ app.get('/api/roadmaps', (req, res) => {
   res.status(200).json(roadmaps);
 });
 
-app.get('/api/resources', (req, res) => {
+app.get('/resources', (req, res) => {
   const resources = [
     { id: '1', title: 'JavaScript Fundamentals', url: 'https://javascript.info', category: 'web' },
     { id: '2', title: 'Python for Data Science', url: 'https://pythonfordatascience.org', category: 'data' },
@@ -161,4 +163,6 @@ app.use((err, req, res, next) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`Signup endpoint: http://localhost:${PORT}/users`);
 });
