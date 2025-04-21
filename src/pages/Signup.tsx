@@ -100,10 +100,8 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (step === 2 && validateStep2()) {
       setIsLoading(true);
-      
       try {
         await signup({
           fullName: formData.fullName,
@@ -112,14 +110,11 @@ const Signup = () => {
           dreamJob: formData.dreamJob,
           dailyTime: formData.dailyTime,
         });
-        
         uiToast({
           title: "Account created!",
           description: "Welcome to CareerLaunch. Let's start your journey!",
         });
-        
         toast.success("Account created! Welcome to CareerLaunch.");
-        
         navigate("/home");
       } catch (error: any) {
         setErrors({

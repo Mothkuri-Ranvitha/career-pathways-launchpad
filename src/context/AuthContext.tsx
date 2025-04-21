@@ -1,8 +1,5 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
-import { User } from "@supabase/supabase-js";
 
 type Profile = {
   id: string;
@@ -13,7 +10,7 @@ type Profile = {
 };
 
 type AuthContextType = {
-  user: User | null;
+  user: Profile | null;
   profile: Profile | null;
   isAuthenticated: boolean;
   loading: boolean;
@@ -39,89 +36,61 @@ export const useAuth = () => {
   return context;
 };
 
+const LOCAL_USER_KEY = "careerlaunch_user";
+const LOCAL_PROFILE_KEY = "careerlaunch_profile";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<Profile | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Simulate fetching from localStorage to check session
   useEffect(() => {
-    // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log("Initial session check:", session?.user?.id || "No session");
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setLoading(false);
-      }
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session?.user?.id);
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        fetchProfile(session.user.id);
-      } else {
-        setProfile(null);
-        setLoading(false);
-      }
-    });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    const localUser = localStorage.getItem(LOCAL_USER_KEY);
+    const localProfile = localStorage.getItem(LOCAL_PROFILE_KEY);
+    if (localUser && localProfile) {
+      setUser(JSON.parse(localUser));
+      setProfile(JSON.parse(localProfile));
+    }
+    setLoading(false);
   }, []);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfileFromBackend = async (email: string) => {
+    setLoading(true);
     try {
-      console.log("Fetching profile for user:", userId);
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", userId)
-        .single();
-
-      if (error) {
-        console.error("Error fetching profile:", error);
-        setLoading(false);
-        throw error;
-      }
-
-      if (data) {
-        console.log("Profile data:", data);
-        setProfile({
-          id: data.id,
-          fullName: data.full_name,
-          email: data.email,
-          dreamJob: data.dream_job,
-          dailyTime: data.daily_time,
-        });
-      }
-      
-      // Always set loading to false after profile fetch attempt
-      setLoading(false);
+      const response = await fetch(`/api/users/${encodeURIComponent(email)}`);
+      if (!response.ok) throw new Error("Failed to fetch profile");
+      const data = await response.json();
+      setProfile(data);
+      setUser(data);
+      localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(data));
+      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(data));
     } catch (error) {
-      console.error("Error fetching profile:", error);
-      toast.error("Failed to fetch user profile");
+      setProfile(null);
+      setUser(null);
+    } finally {
       setLoading(false);
     }
   };
 
   const login = async (email: string, password: string) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const res = await fetch("/api/login", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({ email, password }),
       });
-      if (error) throw error;
-    } catch (error: any) {
-      console.error("Login error:", error);
+      if (!res.ok) {
+        throw new Error("Invalid email or password");
+      }
+      const data = await res.json();
+      setUser(data);
+      setProfile(data);
+      localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(data));
+      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(data));
+    } finally {
       setLoading(false);
-      throw error;
     }
   };
 
@@ -132,79 +101,48 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     dreamJob: string;
     dailyTime: string;
   }) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      const { data, error } = await supabase.auth.signUp({
-        email: userData.email,
-        password: userData.password,
-        options: {
-          data: {
-            full_name: userData.fullName,
-            dream_job: userData.dreamJob,
-            daily_time: userData.dailyTime,
-          },
-        },
+      const res = await fetch("/api/users", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(userData),
       });
-
-      if (error) throw error;
-      
-      // If successful signup but no user yet (email confirmation required)
-      if (!data.user) {
-        setLoading(false);
-        toast.success("Verification email sent. Please check your inbox.");
-        return;
+      if (!res.ok) {
+        const errMsg = await res.text();
+        throw new Error(errMsg || "Failed to sign up");
       }
-      
-      // Create a mock profile for immediate use until real one is created
-      setProfile({
-        id: data.user.id,
-        fullName: userData.fullName,
-        email: userData.email,
-        dreamJob: userData.dreamJob,
-        dailyTime: userData.dailyTime,
-      });
-      
-      toast.success("Account created successfully!");
-      setLoading(false);
-    } catch (error: any) {
-      console.error("Signup error:", error);
-      setLoading(false);
-      throw error;
-    }
-  };
-
-  const logout = async () => {
-    try {
-      setLoading(true);
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-    } catch (error: any) {
-      console.error("Logout error:", error);
-      throw error;
+      const data = await res.json();
+      setUser(data);
+      setProfile(data);
+      localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(data));
+      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(data));
     } finally {
       setLoading(false);
     }
   };
 
+  const logout = async () => {
+    setUser(null);
+    setProfile(null);
+    localStorage.removeItem(LOCAL_USER_KEY);
+    localStorage.removeItem(LOCAL_PROFILE_KEY);
+  };
+
   const updateProgress = async (roadmapId: string, progress: number) => {
     if (!user) return;
-    
     try {
-      const { error } = await supabase
-        .from("roadmap_progress")
-        .upsert({
-          user_id: user.id,
-          roadmap_id: roadmapId,
-          progress: progress,
-          updated_at: new Date().toISOString(),
-        });
-
-      if (error) throw error;
-    } catch (error: any) {
-      console.error("Error updating progress:", error);
-      toast.error("Failed to update progress");
-      throw error;
-    }
+      await fetch("/api/progress", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({
+          userId: user.email,
+          roadmapId,
+          progress,
+        }),
+      });
+      // No local update here; profile/progress re-fetched on reload.
+    } catch (error) {}
   };
 
   return (
@@ -224,3 +162,5 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
+
+// NOTE: This file is getting long, please consider splitting Auth logic/hooks later!

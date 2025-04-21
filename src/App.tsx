@@ -1,6 +1,6 @@
 
 import React from "react";
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster as ShadcnToaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -19,14 +19,12 @@ import Progress from "./pages/Progress";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
 
-// Create the App component
 const App = () => {
-  // Create a new QueryClient instance with proper configuration
   const [queryClient] = useState(() => 
     new QueryClient({
       defaultOptions: {
         queries: {
-          staleTime: 1000 * 60 * 5, // 5 minutes
+          staleTime: 1000 * 60 * 5,
           retry: 1,
         },
       },
@@ -37,7 +35,7 @@ const App = () => {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TooltipProvider>
-          <Toaster />
+          <ShadcnToaster />
           <Sonner />
           <BrowserRouter>
             <Routes>
