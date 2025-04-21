@@ -1,9 +1,10 @@
+
 import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import {
   Select,
@@ -117,8 +118,9 @@ const Signup = () => {
         toast.success("Account created! Welcome to CareerLaunch.");
         navigate("/home");
       } catch (error: any) {
+        console.error("Signup error:", error);
         setErrors({
-          form: error.message || "Failed to create account",
+          form: error.message || "Failed to create account. Please try again.",
         });
         toast.error(error.message || "Failed to create account");
         setIsLoading(false);

@@ -39,12 +39,14 @@ export const useAuth = () => {
 const LOCAL_USER_KEY = "careerlaunch_user";
 const LOCAL_PROFILE_KEY = "careerlaunch_profile";
 
+const API_BASE_URL = "http://localhost:5000/api";
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<Profile | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Simulate fetching from localStorage to check session
+  // Load user from localStorage on startup
   useEffect(() => {
     const localUser = localStorage.getItem(LOCAL_USER_KEY);
     const localProfile = localStorage.getItem(LOCAL_PROFILE_KEY);
@@ -55,42 +57,31 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setLoading(false);
   }, []);
 
-  const fetchProfileFromBackend = async (email: string) => {
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/users/${encodeURIComponent(email)}`);
-      if (!response.ok) throw new Error("Failed to fetch profile");
-      const data = await response.json();
-      setProfile(data);
-      setUser(data);
-      localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(data));
-      localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(data));
-    } catch (error) {
-      setProfile(null);
-      setUser(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const login = async (email: string, password: string) => {
     setLoading(true);
     try {
-      const res = await fetch("/api/login", {
+      const response = await fetch(`${API_BASE_URL}/login`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({ email, password }),
       });
-      if (!res.ok) {
-        throw new Error("Invalid email or password");
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Invalid email or password");
       }
-      const data = await res.json();
+      
+      const data = await response.json();
       setUser(data);
       setProfile(data);
       localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(data));
       localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(data));
-    } finally {
+      
       setLoading(false);
+      return data;
+    } catch (error: any) {
+      setLoading(false);
+      throw new Error(error.message || "Login failed");
     }
   };
 
@@ -100,25 +91,40 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     password: string;
     dreamJob: string;
     dailyTime: string;
-  }) => {
+  }): Promise<void> => {
     setLoading(true);
     try {
-      const res = await fetch("/api/users", {
+      const response = await fetch(`${API_BASE_URL}/users`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify(userData),
       });
-      if (!res.ok) {
-        const errMsg = await res.text();
-        throw new Error(errMsg || "Failed to sign up");
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        let errorMessage;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message;
+        } catch (e) {
+          errorMessage = errorText || "Failed to create account";
+        }
+        throw new Error(errorMessage);
       }
-      const data = await res.json();
+      
+      const data = await response.json();
+      
+      // Set user and profile data and save to localStorage
       setUser(data);
       setProfile(data);
       localStorage.setItem(LOCAL_USER_KEY, JSON.stringify(data));
       localStorage.setItem(LOCAL_PROFILE_KEY, JSON.stringify(data));
-    } finally {
+      
       setLoading(false);
+    } catch (error: any) {
+      setLoading(false);
+      console.error("Signup error:", error);
+      throw error;
     }
   };
 
@@ -132,17 +138,22 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const updateProgress = async (roadmapId: string, progress: number) => {
     if (!user) return;
     try {
-      await fetch("/api/progress", {
+      const response = await fetch(`${API_BASE_URL}/progress`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
         body: JSON.stringify({
-          userId: user.email,
+          userId: user.id,
           roadmapId,
           progress,
         }),
       });
-      // No local update here; profile/progress re-fetched on reload.
-    } catch (error) {}
+      
+      if (!response.ok) {
+        throw new Error("Failed to update progress");
+      }
+    } catch (error) {
+      console.error("Error updating progress:", error);
+    }
   };
 
   return (
@@ -162,5 +173,3 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     </AuthContext.Provider>
   );
 };
-
-// NOTE: This file is getting long, please consider splitting Auth logic/hooks later!

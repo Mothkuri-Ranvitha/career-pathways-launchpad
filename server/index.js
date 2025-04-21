@@ -16,16 +16,18 @@ const USERS_FILE = './users.json';
 function saveUsersToFile() {
   fs.writeFileSync(USERS_FILE, JSON.stringify(USERS, null, 2));
 }
+
 function loadUsersFromFile() {
   if (fs.existsSync(USERS_FILE)) {
     USERS = JSON.parse(fs.readFileSync(USERS_FILE, "utf8"));
   }
 }
+
 loadUsersFromFile();
 
 // CORS policy for frontend preview/localhost
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://preview--career-pathways-launchpad.lovable.app'],
+  origin: '*', // Allow all origins for development
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
 }));
@@ -40,10 +42,17 @@ app.get('/api/health', (req, res) => {
 
 // Sign up
 app.post('/api/users', (req, res) => {
+  console.log('Sign up request received:', req.body);
   const { fullName, email, password, dreamJob, dailyTime } = req.body;
-  if (USERS.some(u => u.email === email)) {
-    return res.status(409).send('Email already exists');
+  
+  if (!fullName || !email || !password) {
+    return res.status(400).json({ message: 'Missing required fields' });
   }
+  
+  if (USERS.some(u => u.email === email)) {
+    return res.status(409).json({ message: 'Email already exists' });
+  }
+  
   const user = {
     id: Date.now().toString(),
     fullName,
@@ -52,8 +61,10 @@ app.post('/api/users', (req, res) => {
     dreamJob,
     dailyTime,
   };
+  
   USERS.push(user);
   saveUsersToFile();
+  
   // Do not return password!
   const { password: pw, ...safeUser } = user;
   res.status(201).json(safeUser);
@@ -98,6 +109,7 @@ app.get('/api/roadmaps', (req, res) => {
   ];
   res.status(200).json(roadmaps);
 });
+
 app.get('/api/resources', (req, res) => {
   const resources = [
     { id: '1', title: 'JavaScript Fundamentals', url: 'https://javascript.info', category: 'web' },
